@@ -1,4 +1,3 @@
-from asyncore import write
 import tkinter as tk
 import test
 from cgitb import text
@@ -9,12 +8,11 @@ import openpyxl as xl
 
 root = tk.Tk()
 root.geometry("250x150")
-# test.Pull_Data()
-# test.Update()
 
 wb = xl.load_workbook('Expenses.xlsx', data_only=True)
 ws = wb['2nd Year']
 
+index = 0
 months = ['January','February','March','April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 with sync_playwright() as p:
@@ -42,55 +40,53 @@ for index, month in enumerate(months,start=1):
         cell_prev = ws.cell(index+1,3)
         cell_prev.value = float(due_prev)/2
         cell_int_prev = ws.cell(index+1,4).value
-        cell_tot_prev = 0
-        for num in range(3,7):
-            cell_tot_prev += int(ws.cell(index+1,num).value)
-
         cell_now = ws.cell(index+2,3)
         cell_now.value = float(due_now)/2
         cell_int_now = ws.cell(index+2,4).value
-        cell_tot_now = 0
-        for num in range(3,7):
-            cell_tot_now += int(ws.cell(index+2,num).value)
+        wb.save('Expenses.xlsx')
         break
     else:
         pass
 
-wb.save('Expenses.xlsx')
+def Sum():
+    cell_tot_prev = 0 
+    for num in range(3,7):
+        cell_tot_prev += float(ws.cell(index+1,num).value)
+    tot_prev=tk.Label(root,text=f'${round(cell_tot_prev,2)}')
+    tot_prev.grid(row=6,column=3)
+
+    cell_tot_now = 0
+    for num in range(3,7):
+        cell_tot_now += float(ws.cell(index+2,num).value) 
+    tot_now=tk.Label(root,text=f'${round(cell_tot_now,2)}')
+    tot_now.grid(row=6,column=4)
 
 prev = tk.Label(root, text=str(months[month_prev-1]))
 prev.grid(row=1,column=3)
 now = tk.Label(root, text=str(months[month_prev]))
 now.grid(row=1,column=4)
 
-elec = tk.Label(root, text = "Electricity")
+elec = tk.Label(root, text="Electricity")
 elec.grid(row=2,column=2)
 elec_data_prev = tk.Label(root,text=f'${float(due_prev)/2}')
 elec_data_prev.grid(row=2,column=3)
 elec_data_now = tk.Label(root,text=f'${float(due_now)/2}')
 elec_data_now.grid(row=2,column=4)
 
-int = tk.Label(root, text = "Internet")
-int_data_prev= tk.Label(root,text=f'${round(cell_int_prev,2)}')
-int_data_prev.grid(row=3,column=3)
-int_data_now= tk.Label(root,text=f'${round(cell_int_now,2)}')
-int.grid(row=3,column=2)
-int_data_now.grid(row=3,column=4)
+inter = tk.Label(root, text="Internet")
+inter_data_prev= tk.Label(root,text=f'${round(cell_int_prev,2)}')
+inter_data_prev.grid(row=3,column=3)
+inter_data_now= tk.Label(root,text=f'${round(cell_int_now,2)}')
+inter.grid(row=3,column=2)
+inter_data_now.grid(row=3,column=4)
 
-laundry = tk.Label(root, text = "Laundry")
+laundry = tk.Label(root, text="Laundry")
 laundry.grid(row=4,column=2)
-other = tk.Label(root, text = "Other")
+other = tk.Label(root, text="Other")
 other.grid(row=5,column=2)
 
-def Total():
-    tot=tk.Label(root,text="Total")
-    tot.grid(row=6,column=2)
-    tot_prev=tk.Label(root,text=f'${round(cell_tot_prev,2)}')
-    tot_prev.grid(row=6,column=3)
-    tot_now=tk.Label(root,text=f'${round(cell_tot_now,2)}')
-    tot_now.grid(row=6,column=4)
-
-Total()
+tot=tk.Label(root,text="Total")
+tot.grid(row=6,column=2)
 
 laundry_prev = tk.Entry(root,width=10)
 laundry_prev.grid(row=4,column=3)
@@ -103,24 +99,12 @@ other_now = tk.Entry(root,width=10)
 other_now.grid(row=5,column=4)
 
 def Input():
-    ws.cell(index+1,5,int(laundry_prev.get()))
-    ws.cell(index+2,5,int(laundry_now.get()))
-    ws.cell(index+1,6,int(other_prev.get()))
-    ws.cell(index+2,6,int(other_now.get()))
+    ws.cell(index+1,5).value = int(laundry_prev.get())
+    ws.cell(index+2,5).value = int(laundry_now.get())
+    ws.cell(index+1,6).value = int(other_prev.get())
+    ws.cell(index+2,6).value = int(other_now.get())
     wb.save('Expenses.xlsx')
-
-    cell_tot_prev = 0
-    for num in range(3,7):
-        cell_tot_prev += int(ws.cell(index+1,num).value)
-
-    cell_tot_now = 0
-    for num in range(3,7):
-        cell_tot_now += int(ws.cell(index+2,num).value)
-    
-    Total()
-
-
-wb.save('Expenses.xlsx')
+    Sum()
 
 update = tk.Button(root, text="Update", command=Input)
 update.grid(row=7, column=3)
